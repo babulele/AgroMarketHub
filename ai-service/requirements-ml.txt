@@ -1,0 +1,19 @@
+# Machine Learning Dependencies (Optional - for future ML model implementation)
+# These are large packages and may take time to download
+# Install separately when ready to implement actual ML models
+
+# For LSTM models (Time-series forecasting)
+tensorflow==2.15.0
+# Alternative lighter option: tensorflow-cpu==2.15.0 (CPU-only, smaller download)
+
+# For Prophet (Seasonal forecasting)
+prophet==1.1.5
+# Note: Prophet requires additional system dependencies:
+# - On Windows: Visual C++ Build Tools
+# - On Linux/Mac: Usually pre-installed
+
+# Installation instructions:
+# 1. Install base requirements first: pip install -r requirements.txt
+# 2. Then install ML dependencies: pip install -r requirements-ml.txt
+# 3. If timeout occurs, increase timeout: pip install --default-timeout=1000 -r requirements-ml.txt
+
