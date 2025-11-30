@@ -13,6 +13,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: 'Analytics', href: '/admin', current: location.pathname === '/admin' },
     { name: 'Verifications', href: '/admin/verifications', current: location.pathname === '/admin/verifications' },
     { name: 'Disputes', href: '/admin/disputes', current: location.pathname === '/admin/disputes' },
+    { name: 'User Management', href: '/admin/users', current: location.pathname === '/admin/users' },
     { name: 'AI Management', href: '/admin/ai-management', current: location.pathname === '/admin/ai-management' },
   ];
 

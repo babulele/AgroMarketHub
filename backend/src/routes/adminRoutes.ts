@@ -8,6 +8,8 @@ import {
   getFoodScarcityTrends,
   getBuyerActivity,
   getSupplyDemandAnalysis,
+  createUser,
+  getUsers,
 } from '../controllers/adminController';
 import { authenticate, authorize } from '../middleware/auth';
 import { UserRole } from '../models';
@@ -22,6 +24,8 @@ router.get('/market-prices', authenticate, authorize(UserRole.ADMIN), getMarketP
 router.get('/food-scarcity', authenticate, authorize(UserRole.ADMIN), getFoodScarcityTrends);
 router.get('/buyer-activity', authenticate, authorize(UserRole.ADMIN), getBuyerActivity);
 router.get('/supply-demand', authenticate, authorize(UserRole.ADMIN), getSupplyDemandAnalysis);
+router.post('/users', authenticate, authorize(UserRole.ADMIN), createUser);
+router.get('/users', authenticate, authorize(UserRole.ADMIN), getUsers);
 
 export default router;
 

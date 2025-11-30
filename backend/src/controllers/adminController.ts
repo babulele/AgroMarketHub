@@ -497,3 +497,93 @@ export const getSupplyDemandAnalysis = async (
   }
 };
 
+export const createUser = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email, password, firstName, lastName, phone, role, organizationName, organizationType } = req.body;
+
+    // Validate role
+    if (role !== UserRole.NGO && role !== UserRole.COUNTY_OFFICER) {
+      res.status(400).json({
+        success: false,
+        message: 'Role must be either "ngo" or "county_officer"',
+      });
+      return;
+    }
+
+    // Validate required fields
+    if (!email || !password || !firstName || !lastName || !phone || !organizationName || !organizationType) {
+      res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields',
+      });
+      return;
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      res.status(400).json({
+        success: false,
+        message: 'User already exists with this email',
+      });
+      return;
+    }
+
+    // Import bcrypt here to avoid circular dependency
+    const bcrypt = require('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      phone,
+      role,
+      organizationName,
+      organizationType,
+      isEmailVerified: true, // Admin-created accounts are pre-verified
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `${role === UserRole.NGO ? 'NGO' : 'County Officer'} account created successfully`,
+      data: { user },
+    });
+  } catch (error: any) {
+    logger.error('Create user error:', error);
+    next(error);
+  }
+};
+
+export const getUsers = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { roles } = req.query;
+    const roleFilter = roles ? (roles as string).split(',') : [UserRole.NGO, UserRole.COUNTY_OFFICER];
+
+    const users = await User.find({
+      role: { $in: roleFilter },
+    })
+      .select('-password')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: { users },
+    });
+  } catch (error: any) {
+    logger.error('Get users error:', error);
+    next(error);
+  }
+};
+

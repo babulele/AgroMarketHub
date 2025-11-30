@@ -9,7 +9,9 @@ import { FaStar } from 'react-icons/fa';
 const ProductList = () => {
   const { addItem } = useCartStore();
   const [products, setProducts] = useState<Product[]>([]);
+  const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trendingLoading, setTrendingLoading] = useState(true);
   const [filters, setFilters] = useState({
     category: '',
     county: '',
@@ -20,6 +22,7 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchTrendingProducts();
   }, [filters]);
 
   const fetchProducts = async () => {
@@ -40,15 +43,79 @@ const ProductList = () => {
     }
   };
 
+  const fetchTrendingProducts = async () => {
+    try {
+      const response = await api.get('/products/trending?limit=8');
+      setTrendingProducts(response.data.data.products || []);
+    } catch (error: any) {
+      // Silently fail for trending products
+      console.error('Failed to load trending products:', error);
+    } finally {
+      setTrendingLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-12">Loading products...</div>;
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Trending Products Section */}
+      {!trendingLoading && trendingProducts.length > 0 && (
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">🔥 Trending Products</h2>
+              <p className="text-sm text-gray-600 mt-1">Most popular products right now</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {trendingProducts.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border-2 border-orange-200"
+              >
+                <Link to={`/buyer/product/${product._id}`}>
+                  {product.images && product.images.length > 0 && (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-40 object-cover"
+                    />
+                  )}
+                </Link>
+                <div className="p-3">
+                  <Link to={`/buyer/product/${product._id}`}>
+                    <h3 className="text-base font-semibold text-gray-900 mb-1 hover:text-primary-600 line-clamp-1">
+                      {product.name}
+                    </h3>
+                  </Link>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-lg font-bold text-primary-600">
+                      KES {product.price}/{product.unit}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      addItem(product, 1);
+                      toast.success('Added to cart!');
+                    }}
+                    disabled={!product.inventory.available}
+                    className="w-full px-3 py-1.5 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium"
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Marketplace</h1>
+          <h1 className="text-3xl font-bold text-gray-900">All Products</h1>
           <div className="flex space-x-2">
             <Link
               to="/buyer/seasonal"

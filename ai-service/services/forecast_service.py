@@ -149,6 +149,137 @@ class ForecastService:
             ],
         }
 
+    async def analyze_yield_vs_demand(
+        self,
+        product_id: Optional[str] = None,
+        category: Optional[str] = None,
+        county: Optional[str] = None,
+        days: int = 90
+    ) -> Dict:
+        """Analyze yield vs market demand for products"""
+        db = get_database()
+        if db is None:
+            raise ValueError("Database connection is not initialized")
+
+        # Get sales data (demand)
+        sales_data = await self.data_collector.get_sales_data(days=days)
+        
+        # Get product inventory data (supply/yield proxy)
+        product_query: Dict = {"isActive": True}
+        if product_id:
+            from bson import ObjectId
+            product_query["_id"] = ObjectId(product_id)
+        if category:
+            product_query["category"] = category
+        if county:
+            product_query["location.county"] = county
+
+        products_cursor = db.products.find(product_query)
+        products = await products_cursor.to_list(length=None)
+
+        if not products:
+            return {
+                "success": False,
+                "message": "No products found matching criteria"
+            }
+
+        # Aggregate demand by product/category
+        demand_by_product: Dict[str, float] = {}
+        if not sales_data.empty:
+            if product_id:
+                product_sales = sales_data[sales_data["productId"] == product_id]
+                demand_by_product[product_id] = product_sales["quantity"].sum()
+            elif category:
+                category_sales = sales_data[sales_data["category"] == category]
+                demand_by_product[category] = category_sales["quantity"].sum()
+            else:
+                for _, row in sales_data.iterrows():
+                    pid = str(row.get("productId", ""))
+                    if pid:
+                        demand_by_product[pid] = demand_by_product.get(pid, 0) + row.get("quantity", 0)
+
+        # Calculate supply (inventory) vs demand
+        analysis_results = []
+        for product in products:
+            product_id_str = str(product["_id"])
+            current_inventory = product.get("inventory", {}).get("quantity", 0)
+            
+            # Get demand for this product
+            product_demand = demand_by_product.get(product_id_str, 0)
+            if category:
+                # For category-level, use average demand
+                category_demand = demand_by_product.get(category, 0)
+                product_demand = category_demand / len(products) if len(products) > 0 else 0
+
+            # Calculate metrics
+            supply_demand_ratio = product_demand / current_inventory if current_inventory > 0 else float('inf')
+            demand_satisfaction = min(100, (current_inventory / product_demand * 100)) if product_demand > 0 else 100
+            shortage_risk = "high" if supply_demand_ratio > 1.5 else ("medium" if supply_demand_ratio > 1.0 else "low")
+            
+            # Get forecasted demand
+            forecast = await self.generate_demand_forecast(
+                forecast_type="monthly",
+                scope="county" if county else "nationwide",
+                region={"county": county} if county else None
+            )
+            
+            # Find matching forecast
+            forecasted_demand = 0
+            for f in forecast:
+                if product_id_str and f.get("product_id") == product_id_str:
+                    forecasted_demand = f.get("demand", 0)
+                    break
+                elif category and f.get("category") == category:
+                    forecasted_demand = f.get("demand", 0) / len(products) if len(products) > 0 else 0
+                    break
+
+            # Recommendations
+            recommendations = []
+            if current_inventory < product_demand * 0.8:
+                recommendations.append("Consider increasing production/inventory to meet demand")
+            if forecasted_demand > current_inventory * 1.2:
+                recommendations.append("Forecasted demand exceeds current inventory - plan for increased production")
+            if supply_demand_ratio > 1.5:
+                recommendations.append("High demand relative to supply - opportunity for price optimization")
+            if not recommendations:
+                recommendations.append("Supply and demand are well balanced")
+
+            analysis_results.append({
+                "product_id": product_id_str,
+                "product_name": product.get("name", "Unknown"),
+                "category": product.get("category", "Unknown"),
+                "current_inventory": current_inventory,
+                "historical_demand": round(product_demand, 2),
+                "forecasted_demand": round(forecasted_demand, 2),
+                "supply_demand_ratio": round(supply_demand_ratio, 2),
+                "demand_satisfaction_percent": round(demand_satisfaction, 2),
+                "shortage_risk": shortage_risk,
+                "recommendations": recommendations,
+                "location": {
+                    "county": product.get("location", {}).get("county", "Unknown"),
+                    "subCounty": product.get("location", {}).get("subCounty", "Unknown")
+                }
+            })
+
+        from datetime import datetime
+        return {
+            "success": True,
+            "analysis_date": datetime.now().isoformat(),
+            "analysis_period_days": days,
+            "filters": {
+                "product_id": product_id,
+                "category": category,
+                "county": county
+            },
+            "results": analysis_results,
+            "summary": {
+                "total_products_analyzed": len(analysis_results),
+                "high_risk_products": len([r for r in analysis_results if r["shortage_risk"] == "high"]),
+                "medium_risk_products": len([r for r in analysis_results if r["shortage_risk"] == "medium"]),
+                "low_risk_products": len([r for r in analysis_results if r["shortage_risk"] == "low"])
+            }
+        }
+
     # Helper methods
 
     def _prepare_time_series(self, sales_df: pd.DataFrame) -> pd.DataFrame:

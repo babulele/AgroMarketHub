@@ -96,3 +96,22 @@ async def get_farmer_insights(farmer_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/yield-vs-demand")
+async def get_yield_vs_demand_analysis(
+    product_id: Optional[str] = None,
+    category: Optional[str] = None,
+    county: Optional[str] = None,
+    days: int = 90
+):
+    """Analyze yield vs market demand for products"""
+    try:
+        analysis = await forecast_service.analyze_yield_vs_demand(
+            product_id=product_id,
+            category=category,
+            county=county,
+            days=days
+        )
+        return analysis
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

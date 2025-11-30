@@ -9,6 +9,7 @@ import BuyerMarketplace from './pages/buyer/Marketplace';
 import RiderDashboard from './pages/rider/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
           />
         </Routes>
         <Toaster position="top-right" />
+        <PWAInstallPrompt />
       </div>
     </BrowserRouter>
   );

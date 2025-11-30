@@ -4,6 +4,7 @@ import Verifications from './Verifications';
 import Disputes from './Disputes';
 import Analytics from './Analytics';
 import AIManagement from './AIManagement';
+import UserManagement from './UserManagement';
 
 const AdminDashboard = () => {
   return (
@@ -13,6 +14,7 @@ const AdminDashboard = () => {
         <Route path="/verifications" element={<Verifications />} />
         <Route path="/disputes" element={<Disputes />} />
         <Route path="/ai-management" element={<AIManagement />} />
+        <Route path="/users" element={<UserManagement />} />
       </Routes>
     </AdminLayout>
   );
