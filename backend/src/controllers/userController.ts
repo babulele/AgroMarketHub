@@ -293,8 +293,8 @@ export const getFarmerPublicProfile = async (
       success: true,
       data: {
         farmer: {
-          _id: farmerId,
           ...farmer,
+          _id: farmerId,
         },
         stats: {
           totalProducts: productStats.totalProducts || 0,

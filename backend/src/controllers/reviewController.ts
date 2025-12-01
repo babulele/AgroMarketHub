@@ -1,9 +1,7 @@
 import { Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
-import { Review, Product } from '../models';
+import { Review, Product, Order } from '../models';
 import { AuthRequest } from '../middleware/auth';
-import { UserRole } from '../models';
-import { Order } from '../models';
 import logger from '../utils/logger';
 
 // Create a review

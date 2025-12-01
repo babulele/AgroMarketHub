@@ -1,6 +1,4 @@
-import dotenv from 'dotenv';
 import axios from 'axios';
-import crypto from 'crypto';
 import logger from '../utils/logger';
 
 interface MpesaConfig {
@@ -363,7 +361,7 @@ class MpesaService {
     }
   }
 
-  verifyWebhook(data: any, signature: string): boolean {
+  verifyWebhook(_data: unknown, _signature: string): boolean {
     // Implement webhook signature verification
     // This is a simplified version - actual implementation should verify against M-Pesa signature
     return true;

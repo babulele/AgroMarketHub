@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { Dispute, DisputeStatus, DisputeType, Order, Product, User } from '../models';
+import { Dispute, DisputeStatus, Order, Product, User } from '../models';
 import { AuthRequest } from '../middleware/auth';
 import logger from '../utils/logger';
 
@@ -134,7 +134,8 @@ export const getRegionalData = async (
     }
 
     const products = await Product.find(query).select('location price inventory');
-    const orders = await Order.find(query).select('delivery totalAmount');
+    // TODO: Use orders to calculate totalOrders and totalRevenue
+    // const orders = await Order.find(query).select('delivery totalAmount');
 
     // Aggregate data by region
     const regionalData = products.reduce((acc: any, product: any) => {

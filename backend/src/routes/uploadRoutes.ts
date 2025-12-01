@@ -1,4 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import fs from 'fs';
+import path from 'path';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import { UserRole } from '../models';
 import { uploadSingle, uploadMultiple } from '../middleware/upload';
@@ -91,8 +93,6 @@ router.post(
 router.get('/:filename', (req: Request, res: Response) => {
   const filename = req.params.filename;
   const filePath = `${process.env.UPLOAD_PATH || './uploads'}/${filename}`;
-  const fs = require('fs');
-  const path = require('path');
 
   if (fs.existsSync(filePath)) {
     res.sendFile(path.resolve(filePath));

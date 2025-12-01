@@ -147,7 +147,7 @@ const startServer = async () => {
     
     // Initialize scheduled jobs (email alerts, etc.)
     if (process.env.ENABLE_SCHEDULER !== 'false') {
-      const schedulerService = await import('./services/schedulerService');
+      await import('./services/schedulerService');
       logger.info('Scheduler service initialized');
     }
     

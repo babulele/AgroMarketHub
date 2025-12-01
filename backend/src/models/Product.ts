@@ -19,6 +19,8 @@ export interface IProduct extends Document {
   isActive: boolean;
   views: number;
   cartAdditions: number;
+  averageRating: number;
+  totalReviews: number;
   createdAt: Date;
   updatedAt: Date;
 }

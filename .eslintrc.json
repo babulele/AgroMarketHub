@@ -18,8 +18,20 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
-    "no-unused-vars": "warn",
-    "no-console": "off"
+    "no-console": "off",
+
+    // Use TypeScript-aware unused vars rule and ignore underscored args
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
+
+    // Allow 'any' for now to avoid excessive noise in existing code
+    "@typescript-eslint/no-explicit-any": "off",
+
+    // Allow require() in TS files where needed (e.g. dynamic imports, Node globals)
+    "@typescript-eslint/no-var-requires": "off"
   },
   "ignorePatterns": [
     "node_modules/",

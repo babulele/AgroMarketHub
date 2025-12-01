@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { Delivery, DeliveryStatus, Order, User } from '../models';
+import { Delivery, DeliveryStatus, Order, OrderStatus, User } from '../models';
 import { AuthRequest } from '../middleware/auth';
 import logger from '../utils/logger';
 import emailService from '../services/emailService';
@@ -31,8 +31,7 @@ export const assignRider = async (
     }
 
     // Get farmer location from first product
-    const firstProduct = await order.items[0].product;
-    // This would need to be populated or fetched separately
+    // Note: This would need to be populated or fetched separately
     // For now, using order delivery location
 
     const delivery = await Delivery.create({
@@ -59,7 +58,7 @@ export const assignRider = async (
 
     order.delivery.rider = riderId as any;
     order.delivery.assignedAt = new Date();
-    order.status = 'assigned';
+    order.status = OrderStatus.ASSIGNED;
     await order.save();
 
     res.status(201).json({
@@ -128,11 +127,11 @@ export const updateDeliveryStatus = async (
     const order = await Order.findById(delivery.order).populate('buyer');
     if (order) {
       if (status === DeliveryStatus.PICKING) {
-        order.status = 'picking';
+        order.status = OrderStatus.PICKING;
       } else if (status === DeliveryStatus.IN_TRANSIT) {
-        order.status = 'in_transit';
+        order.status = OrderStatus.IN_TRANSIT;
       } else if (status === DeliveryStatus.DELIVERED) {
-        order.status = 'delivered';
+        order.status = OrderStatus.DELIVERED;
       }
       await order.save();
 
