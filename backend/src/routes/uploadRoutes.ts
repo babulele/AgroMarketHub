@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response, NextFunction, Express } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
@@ -63,8 +63,12 @@ router.post(
         return;
       }
 
-      const files = Array.isArray(req.files) ? req.files : [req.files];
-      const uploadPromises = files.map((file) =>
+      // Normalize files to an array of Express.Multer.File
+      const filesArray = (Array.isArray(req.files)
+        ? req.files
+        : [req.files]) as Express.Multer.File[];
+
+      const uploadPromises = filesArray.map((file) =>
         imageService.uploadFile(file.path, file.filename, 'products')
       );
 
@@ -76,9 +80,9 @@ router.post(
         data: {
           urls: urls.map((url, index) => ({
             url,
-            filename: files[index].filename,
-            size: files[index].size,
-            mimetype: files[index].mimetype,
+            filename: filesArray[index].filename,
+            size: filesArray[index].size,
+            mimetype: filesArray[index].mimetype,
           })),
         },
       });

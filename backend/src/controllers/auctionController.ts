@@ -314,14 +314,15 @@ export const placeBid = async (
     // Update auction
     auction.currentHighestBid = bidAmount;
     auction.bids.push(bid._id);
-    
+
     // Mark previous winning bid as not winning
     if (auction.winningBid) {
       await Bid.findByIdAndUpdate(auction.winningBid, { isWinning: false });
     }
-    
+
     auction.winningBid = bid._id;
-    auction.winningBuyer = req.user!.id;
+    // Cast to any to satisfy ObjectId type while storing the user ID string
+    auction.winningBuyer = req.user!.id as any;
     await auction.save();
 
     // Mark new bid as winning

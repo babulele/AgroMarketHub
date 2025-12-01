@@ -219,12 +219,7 @@ export const getProducts = async (
     });
   } catch (error: any) {
     logger.error('Get products error:', error);
-    logger.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      query: JSON.stringify(query),
-    });
+    // Additional error details can be logged here if needed
     next(error);
   }
 };

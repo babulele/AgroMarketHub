@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { Dispute, DisputeStatus, Order, Product, User } from '../models';
+import { Dispute, DisputeStatus, Order, Product, User, UserRole } from '../models';
 import { AuthRequest } from '../middleware/auth';
 import logger from '../utils/logger';
 
